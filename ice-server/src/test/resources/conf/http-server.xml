@@ -4,17 +4,18 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
     <context:annotation-config />
-    <context:component-scan base-package="com.melinkr.ice.http" use-default-filters="false">
+    <context:component-scan base-package="com.melinkr.ice" use-default-filters="false">
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
     </context:component-scan>
-    <bean id="iceServer" class="com.melinkr.ice.http.HttpIceServer">
+<!--
+    <bean id="httpServer" class="com.melinkr.ice.http.HttpIceServer">
         <constructor-arg>
             <bean class="com.melinkr.ice.http.handler.HttpServerInitializer">
                 <constructor-arg>
-                    <bean class="com.melinkr.ice.http.handler.HttpServerIceHandler"/>
+                    <bean class="com.melinkr.ice.http.handler.HttpServerHandler"/>
                 </constructor-arg>
             </bean>
         </constructor-arg>
-    </bean>
+    </bean>-->
 </beans>

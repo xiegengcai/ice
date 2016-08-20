@@ -15,14 +15,14 @@ import java.util.Set;
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/19.
  */
 @Configuration
-@ComponentScan("com.melinkr.ice.http")
-@PropertySource("conf/httpSserver.properties")
+@ComponentScan("com.melinkr.ice")
+@PropertySource("conf/iceServer.properties")
 public class HttpIceServerConfig implements IceServerConfig {
-    @Value("${httpServer.port:8080}")
+    @Value("${server.port:8080}")
     private int port;
-    @Value("${httpServer.maxContentLength:67108864}")
+    @Value("${server.maxContentLength:67108864}")
     private int maxContentLength;
-    @Value("#{'${black.ip}'.split(',')}")
+    @Value("#{'${black.ip}'.split(';')}")
     private Set<String> ipBlacklist;
 
     @Value("${boss.thread.bossThreadSize}")

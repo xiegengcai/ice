@@ -16,7 +16,7 @@ public class SimpleQueryStringDecoder {
     private final boolean hasPath;
     private final int maxParams;
     private String path;
-    private Map<String, Object> params;
+    private Map<String, String> params;
     private int nParams;
 
     public SimpleQueryStringDecoder(String uri) {
@@ -64,7 +64,7 @@ public class SimpleQueryStringDecoder {
         return this.path;
     }
 
-    public Map<String, Object> parameters() {
+    public Map<String, String> parameters() {
         if(this.params == null) {
             if(this.hasPath) {
                 int pathEndPos = this.uri.indexOf(63);

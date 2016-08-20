@@ -1,11 +1,14 @@
 package com.melinkr.ice;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
 import com.melinkr.ice.config.IceServerConfig;
+import com.melinkr.ice.request.IceHttpRequest;
 import com.melinkr.ice.response.IceError;
+import com.melinkr.ice.response.IceResponse;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -13,33 +16,42 @@ import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
+
+import java.net.InetSocketAddress;
+import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.netty.handler.codec.rtsp.RtspHeaderNames.CONTENT_TYPE;
 
 /**
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/19.
  */
 public abstract class IceHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
-    @Autowired
-    private IceServerConfig iceServerConfig;
+    protected final static String CONTENT_TYPE = "Content-Type";
+    protected final static String X_FORWARDED_FOR = "X-Forwarded-For";
+    protected final static String X_REAL_IP = "X-Real-IP";
+    protected Map<String, String> params;
+    protected IceServerConfig iceServerConfig;
+    protected Dispatcher dispatcher;
+
+    public IceHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
+        this.iceServerConfig = iceServerConfig;
+        this.dispatcher = dispatcher;
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         logger.info("Received RamoteAddress[{}] {} request, uri={}", ctx.channel().remoteAddress(), request.method(), request.uri());
-
-        ByteBuf buf = Unpooled.buffer();
+        IceResponse iceResponse = null;
         if (notSupported(request)) {
             logger.error("Not Supported HTTP Method.");
-            ByteBufUtil.writeUtf8(buf, JSON.toJSONString(new IceError(IceErrorCode.NOT_SUPPORTED_ACTION)));
+            iceResponse = new IceError(IceErrorCode.NOT_SUPPORTED_ACTION);
         } else {
-            ByteBufUtil.writeUtf8(buf, service(request));
+            iceResponse = dispatcher.dispatch(builRequest(ctx, request));
         }
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
-        response.headers().set(CONTENT_TYPE, "text/plain");
-        response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
-        ctx.channel().write(response).addListener(ChannelFutureListener.CLOSE);
+       httpResponse(ctx, iceResponse);
     }
 
     @Override
@@ -49,8 +61,22 @@ public abstract class IceHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
-        ctx.close();
+        if (cause instanceof JSONException) {
+            httpResponse(ctx, new IceError(IceErrorCode.JSON_FORMAT_ERROR));
+        } else {
+            cause.printStackTrace();
+            httpResponse(ctx, new IceError(IceErrorCode.UNKNOW_ERROR));
+        }
+//        ctx.close();
+    }
+
+    private void httpResponse(ChannelHandlerContext ctx,IceResponse iceResponse) {
+        ByteBuf buf = ByteBufAllocator.DEFAULT.buffer();
+        ByteBufUtil.writeUtf8(buf, JSON.toJSONString(iceResponse));
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
+        response.headers().set(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+        response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
+        ctx.channel().write(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     public IceServerConfig serverConfig(){
@@ -65,5 +91,37 @@ public abstract class IceHandler extends SimpleChannelInboundHandler<FullHttpReq
         return HttpMethod.POST != request.method() && HttpMethod.GET != request.method();
     }
 
-    protected abstract String service(FullHttpRequest request);
+    protected abstract IceHttpRequest builRequest(ChannelHandlerContext ctx, FullHttpRequest request);
+
+    protected MediaType mediaType(FullHttpRequest request) {
+        String contentType =  request.headers().get(CONTENT_TYPE);
+        logger.info("{}:{}", CONTENT_TYPE, contentType);
+        return MediaType.valueOf(contentType);
+    }
+
+    protected boolean needParseJson(FullHttpRequest request) {
+        MediaType mediaType = mediaType(request);
+        return HttpMethod.POST == request.method()
+                && (MediaType.APPLICATION_JSON.equals(mediaType) || MediaType.APPLICATION_JSON_UTF8 .equals(mediaType));
+    }
+
+    protected String clientIP(ChannelHandlerContext ctx, FullHttpRequest request) {
+        // nginx反向代理
+        String remoteIp = request.headers().get(X_REAL_IP);
+        if (StringUtils.hasText(remoteIp)) {
+            return remoteIp;
+        } else  {
+            // apache反射代理
+            remoteIp = request.headers().get(X_FORWARDED_FOR);
+            if (StringUtils.hasText(remoteIp)) {
+                String[] ips = remoteIp.split(",");
+                for (String ip : ips) {
+                    if (!"null".equalsIgnoreCase(ip)) {
+                        return ip;
+                    }
+                }
+            }
+        }
+        return ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
+    }
 }

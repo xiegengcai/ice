@@ -3,9 +3,13 @@ package com.melinkr.ice.http.handler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.google.common.base.Throwables;
+import com.melinkr.ice.Dispatcher;
 import com.melinkr.ice.IceHandler;
 import com.melinkr.ice.codec.SimpleQueryStringDecoder;
+import com.melinkr.ice.config.IceServerConfig;
+import com.melinkr.ice.request.IceHttpRequest;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.multipart.Attribute;
@@ -13,7 +17,6 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,15 +27,21 @@ import java.util.Map;
  */
 //@Component("serverHandler")
 @ChannelHandler.Sharable
-public class HttpServerIceHandler extends IceHandler {
+public class HttpServerHandler extends IceHandler {
 
+    private final DefaultHttpDataFactory httpDataFactory;
 
-    private Map<String, Object> params;
+    public HttpServerHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
+        this(iceServerConfig, dispatcher, new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE));
+    }
 
-    private final DefaultHttpDataFactory httpDataFactory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);;
+    public HttpServerHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher, DefaultHttpDataFactory httpDataFactory) {
+        super(iceServerConfig, dispatcher);
+        this.httpDataFactory = httpDataFactory;
+    }
 
     @Override
-    protected String service(FullHttpRequest request) {
+    protected IceHttpRequest builRequest(ChannelHandlerContext ctx, FullHttpRequest request) {
         params = new SimpleQueryStringDecoder(request.uri()).parameters();
         if (params.size() == 0) { // Collections.EMPTY_MAP
             params = new HashMap<>();
@@ -48,14 +57,11 @@ public class HttpServerIceHandler extends IceHandler {
                     logger.warn(Throwables.getStackTraceAsString(e));
                 }
             });
-        }
-        String httpContent = request.content().toString(CharsetUtil.UTF_8).trim();
-        // POST JSON DATA
-        if (StringUtils.hasText(httpContent)) {
-            if (httpContent.startsWith("{") && httpContent.endsWith("}")) {
-                params.putAll(JSON.parseObject(httpContent, new TypeReference<Map<String, Object>>(){}));
+            if (needParseJson(request)) {
+                String httpContent = request.content().toString(CharsetUtil.UTF_8).trim();
+                params.putAll(JSON.parseObject(httpContent, new TypeReference<Map<String, String>>(){}));
             }
         }
-        return JSON.toJSONString(params);
+        return new IceHttpRequest(params, clientIP(ctx, request));
     }
 }

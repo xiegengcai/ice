@@ -4,6 +4,7 @@ import com.melinkr.ice.IceInitializer;
 import com.melinkr.ice.IceServer;
 import com.melinkr.ice.http.handler.HttpServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -55,7 +57,8 @@ public class HttpIceServer implements IceServer {
         b.option(ChannelOption.SO_BACKLOG, 1024);
         b.group(bossGroup,workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO))
+//                .handler(new LoggingHandler(LogLevel.INFO))
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childHandler(iceInitializer);
 
         try {

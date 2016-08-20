@@ -24,6 +24,10 @@ public class IceResponse<T> {
         this.data = data;
     }
 
+    public IceResponse(T data) {
+        this.data = data;
+    }
+
     public int getCode() {
         return code;
     }
