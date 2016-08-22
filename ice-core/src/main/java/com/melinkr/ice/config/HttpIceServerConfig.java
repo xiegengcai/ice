@@ -8,19 +8,19 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.net.InetSocketAddress;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/19.
  */
 @Configuration
-//@ComponentScan("com.melinkr.ice")
 @PropertySource("conf/iceServer.properties")
 public class HttpIceServerConfig implements IceServerConfig {
     @Value("${server.port:8080}")
     private int port;
     @Value("${server.maxContentLength:67108864}")
     private int maxContentLength;
-    @Value("#{'${black.ip}'.split(';')}")
+    @Value("#{'${server.black.ip}'.split(';')}")
     private Set<String> ipBlacklist;
 
     @Value("${boss.thread.bossThreadSize}")
@@ -28,17 +28,18 @@ public class HttpIceServerConfig implements IceServerConfig {
 
     @Value("${boss.thread.wokerThreadSize}")
     private int wokerThreadSize;
-
-    private NioEventLoopGroup bossGroup;
-    private NioEventLoopGroup workerGroup;
-    private InetSocketAddress socketAddress;
-
-//    @PostConstruct
-//    public void init(){
-//        this.bossGroup = new NioEventLoopGroup(bossThreadSize);
-//        this.workerGroup = new NioEventLoopGroup(wokerThreadSize);
-//        this.socketAddress = new InetSocketAddress(this.port);
-//    }
+    @Value("${ice.service.openSign:true}")
+    private boolean openSign;
+    @Value("${ice.service.openSession:false}")
+    private boolean openSession;
+    @Value("${ice.service.openTimestamp:false}")
+    private boolean openTimestamp;
+    @Value("${ice.service.timestampRange:60}")
+    private int timestampRange;
+    @Value("${ice.service.maxTimeout:60}")
+    private int maxTimeout;
+    @Value("${ice.service.defaultTimeout:30}")
+    private int defaultTimeout;
 
     @Override
     public int port() {
@@ -55,25 +56,51 @@ public class HttpIceServerConfig implements IceServerConfig {
         return this.ipBlacklist;
     }
 
-
     @Override
     @Bean(name = "bossGroup", destroyMethod = "shutdownGracefully")
     public NioEventLoopGroup bossGroup() {
         return new NioEventLoopGroup(bossThreadSize);
-//        return this.bossGroup;
     }
 
     @Override
     @Bean(name = "workerGroup", destroyMethod = "shutdownGracefully")
     public NioEventLoopGroup workerGroup() {
         return new NioEventLoopGroup(wokerThreadSize);
-//        return this.workerGroup;
     }
 
     @Override
     @Bean(name = "socketAddress")
     public InetSocketAddress socketAddress() {
-//        return this.socketAddress;
-        return new InetSocketAddress(this.port);
+        return new InetSocketAddress(this.port());
+    }
+
+    @Override
+    public boolean isOpenSign() {
+        return this.openSign;
+    }
+
+    @Override
+    public boolean isOpenSession() {
+        return this.openSession;
+    }
+
+    @Override
+    public boolean isOpenTimestamp() {
+        return this.openTimestamp;
+    }
+
+    @Override
+    public long timestampRange() {
+        return TimeUnit.SECONDS.toMillis(this.timestampRange);
+    }
+
+    @Override
+    public int maxTimeout() {
+        return this.maxTimeout;
+    }
+
+    @Override
+    public int defaultTimeout() {
+        return this.defaultTimeout;
     }
 }

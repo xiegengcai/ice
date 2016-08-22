@@ -2,6 +2,7 @@ package com.melinkr.ice.server;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
+import com.google.common.base.Throwables;
 import com.melinkr.ice.Dispatcher;
 import com.melinkr.ice.IceErrorCode;
 import com.melinkr.ice.config.IceServerConfig;
@@ -15,6 +16,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.timeout.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +42,6 @@ public abstract class IceHandler extends SimpleChannelInboundHandler<FullHttpReq
     @Autowired
     protected Dispatcher dispatcher;
 
-//    public IceHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
-//        this.iceServerConfig = iceServerConfig;
-//        this.dispatcher = dispatcher;
-//    }
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         logger.info("Received RamoteAddress[{}] {} request, uri={}", ctx.channel().remoteAddress(), request.method(), request.uri());
@@ -65,10 +62,12 @@ public abstract class IceHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.error("{}", Throwables.getStackTraceAsString(cause));
         if (cause instanceof JSONException) {
             httpResponse(ctx, new IceError(IceErrorCode.JSON_FORMAT_ERROR));
+        } else if (cause instanceof TimeoutException){
+            httpResponse(ctx, new IceError(IceErrorCode.EXECUTE_TIMEOUT));
         } else {
-            cause.printStackTrace();
             httpResponse(ctx, new IceError(IceErrorCode.UNKNOW_ERROR));
         }
 //        ctx.close();

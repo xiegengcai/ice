@@ -39,13 +39,6 @@ public interface IceServerConfig {
     }
 
     /**
-     * 系统是否开启签名验证
-     */
-    default boolean isOpenAppKey() {
-        return Boolean.TRUE;
-    }
-
-    /**
      * 系统是否开会话
      */
     default boolean isOpenSession() {
@@ -62,21 +55,21 @@ public interface IceServerConfig {
     /**
      * 请求时间与服务收到时间允许最大误差。单位：毫秒
      */
-    default long getTimestampValue() {
+    default long timestampRange() {
         return TimeUnit.SECONDS.toMillis(60);
     }
 
     /**
      * 最大超时时间60s,单位秒
      */
-    default int getMaxTimeout() {
+    default int maxTimeout() {
         return 60;
     }
 
     /**
      * 缺省超时时间 30s,单位秒
      */
-    default int getDefaultTimeout() {
+    default int defaultTimeout() {
         return 30;
     }
 }

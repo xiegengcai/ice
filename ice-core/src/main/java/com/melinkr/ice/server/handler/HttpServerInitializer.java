@@ -1,7 +1,7 @@
 package com.melinkr.ice.server.handler;
 
 import com.melinkr.ice.server.IceHandler;
-import com.melinkr.ice.server.IceInitializer;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -13,23 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/19.
  */
-//@Component("serverInitializer")
-public class HttpServerInitializer extends IceInitializer {
-/*
-    public HttpServerInitializer(IceHandler iceHandler) {
-        super(iceHandler);
-    }
-    */
+public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     @Autowired
     private IceHandler iceHandler;
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         socketChannel.pipeline()
                 .addLast("serverCodec", new HttpServerCodec())
-                .addLast("aggregator", new HttpObjectAggregator(iceHandler().serverConfig().maxContentLength()))
+                .addLast("aggregator", new HttpObjectAggregator(iceHandler.serverConfig().maxContentLength()))
                 .addLast("gzip", new HttpContentCompressor())
                 .addLast("logger", new LoggingHandler(LogLevel.INFO))
-                .addLast("serverHandler", iceHandler())
-                ;
+                .addLast("serverHandler", iceHandler)
+        ;
     }
 }

@@ -23,6 +23,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class IceDispatcher implements Dispatcher{
     @Autowired
     private IceServerConfig iceServerConfig;
 
-//    private ExecutorService executorService = Executors.newFixedThreadPool(3);
+    private ExecutorService executorService = Executors.newFixedThreadPool(2);
     @Override
     public IceResponse dispatch(IceHttpRequest request) {
         final String method = request.getParameter(SystemParameterNames.getMehod());
@@ -65,14 +66,13 @@ public class IceDispatcher implements Dispatcher{
                 .getTimeout();
         if (timeout < 0) {
             // 默认
-            timeout = iceServerConfig.getDefaultTimeout();
-        } else if (timeout > iceServerConfig.getMaxTimeout()) {
+            timeout = iceServerConfig.defaultTimeout();
+        } else if (timeout > iceServerConfig.maxTimeout()) {
             // 最大超时时间
-            timeout = iceServerConfig.getMaxTimeout();
+            timeout = iceServerConfig.maxTimeout();
         }
-        return doInvoke(request);
-        /*
-        Future<IceResponse> future = executorService.submit(new ServiceRunnable(request));
+//        return doInvoke(request);
+        Future<IceResponse> future = executorService.submit(() -> doInvoke(request));
         IceErrorCode errorCode = IceErrorCode.UNKNOW_ERROR;
         try {
             future.get(timeout, TimeUnit.SECONDS);
@@ -83,10 +83,9 @@ public class IceDispatcher implements Dispatcher{
             logger.info("调用服务方法:{}#{}，产生异常", method, version, e.getCause());
         } catch (TimeoutException e) {
             logger.info("调用服务方法:{}#{}，服务调用超时。", method, version);
-            errorCode = IceErrorCode.TIMESTAMP_ERROR;
+            errorCode = IceErrorCode.EXECUTE_TIMEOUT;
         }
         return new IceError(errorCode);
-        */
     }
 
     private IceError validateSystemParameters(IceRequestContext requestContext) {
@@ -105,14 +104,13 @@ public class IceDispatcher implements Dispatcher{
                 return  new IceError(IceErrorCode.TIMESTAMP_ERROR);
             }else{
                 long urlTimestamp = Long.parseLong(timestamp);
-                long nowTime = System.currentTimeMillis();
-                if(Math.abs(nowTime-urlTimestamp) > iceServerConfig.getTimestampValue()){
+                if(Math.abs(Calendar.getInstance().getTimeInMillis() - urlTimestamp) > iceServerConfig.timestampRange()){
                     return  new IceError(IceErrorCode.TIMESTAMP_ERROR);
                 }
             }
         }
         //5session
-        if(requestContext.getServiceMethodHandler().getServiceMethodValue().isNeedSession()){
+        if(iceServerConfig.isOpenSession() && requestContext.getServiceMethodHandler().getServiceMethodValue().isNeedSession()){
             Session session =  sessionService.getSession(requestContext.getSessionId());
             if(session == null){
                 return  new IceError(IceErrorCode.SESSION_TIMEOUT);
@@ -190,44 +188,7 @@ public class IceDispatcher implements Dispatcher{
             return requestContext.getServiceMethodHandler().getHandlerMethod().invoke( requestContext.getServiceMethodHandler().getHandler());
         }
     }
-    /*
-    *//**
-     * 线程处理 Runnable
-     *//*
-    private class ServiceRunnable implements Callable<IceResponse> {
 
-        private IceHttpRequest request;
-
-
-        private ServiceRunnable(IceHttpRequest request) {
-            this.request = request;
-        }
-
-        @Override
-        public IceResponse call() throws Exception {
-            try {
-                // 1构建请求上下文
-                IceRequestContext iceRequestContext = IceBuilder.buildIceRequestContext(iceContext, request);
-                // 校验系统参数
-                IceError error = validateSystemParameters(iceRequestContext);
-                if (error != null) {
-                    return error;
-                }
-                IceRequest iceRequest = IceBuilder.buildIceRequest(iceRequestContext);
-                // 校验方法参数
-                error = validateMethodParameters(iceRequestContext);
-                if (error != null) {
-                    return error;
-                }
-
-                // 正常业务
-                return new IceResponse(invoke(iceRequest));
-            } catch (Exception e) {
-                throw new IceException("执行异常", e);
-            }
-        }
-    }
-*/
     private IceResponse doInvoke(IceHttpRequest request) {
         try {
             // 1构建请求上下文
@@ -250,7 +211,9 @@ public class IceDispatcher implements Dispatcher{
             return new IceError(e.getCode(), e.getMessage());
         } catch (Exception e) {
             logger.error("{}", Throwables.getStackTraceAsString(e));
-            return new IceError(IceErrorCode.UNKNOW_ERROR);
+            IceError iceError= new IceError(IceErrorCode.UNKNOW_ERROR);
+            iceError.setMessage(e.getMessage());
+            return iceError;
         }
     }
 }
