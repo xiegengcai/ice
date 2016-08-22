@@ -1,8 +1,9 @@
 package com.melinkr.ice.dispatcher;
 
+import com.google.common.base.Throwables;
 import com.melinkr.ice.*;
+import com.melinkr.ice.config.IceServerConfig;
 import com.melinkr.ice.config.SystemParameterNames;
-import com.melinkr.ice.config.SystemValue;
 import com.melinkr.ice.context.IceContext;
 import com.melinkr.ice.context.IceRequestContext;
 import com.melinkr.ice.exception.IceException;
@@ -45,7 +46,10 @@ public class IceDispatcher implements Dispatcher{
     @Autowired
     private InvokeService invokeService;
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(3);
+    @Autowired
+    private IceServerConfig iceServerConfig;
+
+//    private ExecutorService executorService = Executors.newFixedThreadPool(3);
     @Override
     public IceResponse dispatch(IceHttpRequest request) {
         final String method = request.getParameter(SystemParameterNames.getMehod());
@@ -61,11 +65,13 @@ public class IceDispatcher implements Dispatcher{
                 .getTimeout();
         if (timeout < 0) {
             // 默认
-            timeout = SystemValue.getDefaultTimeout();
-        } else if (timeout > SystemValue.getMaxTimeout()) {
+            timeout = iceServerConfig.getDefaultTimeout();
+        } else if (timeout > iceServerConfig.getMaxTimeout()) {
             // 最大超时时间
-            timeout = SystemValue.getMaxTimeout();
+            timeout = iceServerConfig.getMaxTimeout();
         }
+        return doInvoke(request);
+        /*
         Future<IceResponse> future = executorService.submit(new ServiceRunnable(request));
         IceErrorCode errorCode = IceErrorCode.UNKNOW_ERROR;
         try {
@@ -80,6 +86,7 @@ public class IceDispatcher implements Dispatcher{
             errorCode = IceErrorCode.TIMESTAMP_ERROR;
         }
         return new IceError(errorCode);
+        */
     }
 
     private IceError validateSystemParameters(IceRequestContext requestContext) {
@@ -92,38 +99,19 @@ public class IceDispatcher implements Dispatcher{
 
         //4验证时间戳
         //是否开启时间戳
-        if (requestContext.getServiceMethodHandler().getServiceMethodValue().isOpenTimestamp()) {
+        if (iceServerConfig.isOpenTimestamp() && requestContext.getServiceMethodHandler().getServiceMethodValue().isOpenTimestamp()) {
             String timestamp = requestContext.getTimestamp();
             if(StringUtils.isEmpty(timestamp)){
                 return  new IceError(IceErrorCode.TIMESTAMP_ERROR);
             }else{
                 long urlTimestamp = Long.parseLong(timestamp);
                 long nowTime = System.currentTimeMillis();
-                if(Math.abs(nowTime-urlTimestamp) > SystemValue.getTimestampValue()){
+                if(Math.abs(nowTime-urlTimestamp) > iceServerConfig.getTimestampValue()){
                     return  new IceError(IceErrorCode.TIMESTAMP_ERROR);
                 }
             }
         }
-
-        // 方法注解优先级高于全局配置
-        boolean isOpenSign = requestContext.getServiceMethodHandler().getServiceMethodValue().isNeedSign();
-        //5 开发者验证
-        String secret = null;
-        // 如果开启签名验证，那么必须开启开发者验证
-        if(isOpenSign || requestContext.getServiceMethodHandler().getServiceMethodValue().isOpenAppKey()){
-            String appKey = requestContext.getAppKey();
-            if(StringUtils.isEmpty(appKey)){
-                return  new IceError(IceErrorCode.INVALID_APPKEY);
-            }else{
-                secret  = appKeyService.getSecretByAppKey(requestContext.getAppKey());
-                if(StringUtils.isEmpty(secret)){
-                    return  new IceError(IceErrorCode.INVALID_APPKEY);
-                }
-            }
-
-        }
-
-        //6session
+        //5session
         if(requestContext.getServiceMethodHandler().getServiceMethodValue().isNeedSession()){
             Session session =  sessionService.getSession(requestContext.getSessionId());
             if(session == null){
@@ -133,20 +121,32 @@ public class IceDispatcher implements Dispatcher{
                 requestContext.setSession(session);
             }
         }
-
-        //7签名验证
-        if(isOpenSign){
-            List<String> ignoreSignFieldNames = requestContext.getServiceMethodHandler().getIgnoreSignFieldNames();
-            Map<String, String> needSignParams = new HashMap<>();
-            requestContext.getAllParams().entrySet().stream().filter(entry -> !ignoreSignFieldNames.contains(entry.getKey())).forEach(entry -> {
-                needSignParams.put(entry.getKey(), entry.getValue());
-            });
-            //签名
-            String signValue = SignUtils.sign(needSignParams, secret);
-            if(!signValue.equals(requestContext.getSign())){
-                logger.info("server sign = {}, client sign = {}", signValue, requestContext.getSign());
-                //签名有误
-                return  new IceError(IceErrorCode.SIGN_ERROR);
+        //6 开发者验证
+        if(iceServerConfig.isOpenSign()){
+            String secret = null;
+            String appKey = requestContext.getAppKey();
+            if(StringUtils.isEmpty(appKey)){
+                return  new IceError(IceErrorCode.INVALID_APPKEY);
+            }else{
+                secret  = appKeyService.getSecretByAppKey(requestContext.getAppKey());
+                if(StringUtils.isEmpty(secret)){
+                    return  new IceError(IceErrorCode.INVALID_APPKEY);
+                }
+            }
+            //7签名验证
+            if (requestContext.getServiceMethodHandler().getServiceMethodValue().isNeedSign()) {
+                List<String> ignoreSignFieldNames = requestContext.getServiceMethodHandler().getIgnoreSignFieldNames();
+                Map<String, String> needSignParams = new HashMap<>();
+                requestContext.getAllParams().entrySet().stream().filter(entry -> !ignoreSignFieldNames.contains(entry.getKey())).forEach(entry -> {
+                    needSignParams.put(entry.getKey(), entry.getValue());
+                });
+                //7签名验证
+                String signValue = SignUtils.sign(needSignParams, secret);
+                if(!signValue.equals(requestContext.getSign())){
+                    logger.info("server sign = {}, client sign = {}", signValue, requestContext.getSign());
+                    //签名有误
+                    return  new IceError(IceErrorCode.SIGN_ERROR);
+                }
             }
         }
 
@@ -180,19 +180,20 @@ public class IceDispatcher implements Dispatcher{
         return  error;
     }
 
-    private Object invoke(IceRequestContext requestContext) throws InvocationTargetException, IllegalAccessException{
-        IceRequest iceRequest = IceBuilder.buildIceRequest(requestContext);
+    private Object invoke(IceRequest iceRequest) throws InvocationTargetException, IllegalAccessException{
+        IceRequestContext  requestContext = iceRequest.getIceRequestContext();
         //有参数
-        if(requestContext.getServiceMethodHandler().isHasParameter()){
+        if(iceRequest.getIceRequestContext().getServiceMethodHandler().isHasParameter()){
             return requestContext.getServiceMethodHandler().getHandlerMethod().invoke (requestContext.getServiceMethodHandler().getHandler(), iceRequest);
             //无参数
         }else{
             return requestContext.getServiceMethodHandler().getHandlerMethod().invoke( requestContext.getServiceMethodHandler().getHandler());
         }
     }
-    /**
+    /*
+    *//**
      * 线程处理 Runnable
-     */
+     *//*
     private class ServiceRunnable implements Callable<IceResponse> {
 
         private IceHttpRequest request;
@@ -212,16 +213,44 @@ public class IceDispatcher implements Dispatcher{
                 if (error != null) {
                     return error;
                 }
+                IceRequest iceRequest = IceBuilder.buildIceRequest(iceRequestContext);
                 // 校验方法参数
                 error = validateMethodParameters(iceRequestContext);
                 if (error != null) {
                     return error;
                 }
+
                 // 正常业务
-                return new IceResponse(invoke(iceRequestContext));
+                return new IceResponse(invoke(iceRequest));
             } catch (Exception e) {
                 throw new IceException("执行异常", e);
             }
+        }
+    }
+*/
+    private IceResponse doInvoke(IceHttpRequest request) {
+        try {
+            // 1构建请求上下文
+            IceRequestContext iceRequestContext = IceBuilder.buildIceRequestContext(iceContext, request);
+            // 校验系统参数
+            IceError error = validateSystemParameters(iceRequestContext);
+            if (error != null) {
+                return error;
+            }
+            IceRequest iceRequest = IceBuilder.buildIceRequest(iceRequestContext);
+            // 校验方法参数
+            error = validateMethodParameters(iceRequestContext);
+            if (error != null) {
+                return error;
+            }
+            // 正常业务
+            return new IceResponse(invoke(iceRequest));
+        } catch (IceException e) {
+            logger.error("{}", Throwables.getStackTraceAsString(e));
+            return new IceError(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("{}", Throwables.getStackTraceAsString(e));
+            return new IceError(IceErrorCode.UNKNOW_ERROR);
         }
     }
 }

@@ -42,7 +42,7 @@ public class IceContext implements ApplicationContextAware {
      */
     @PostConstruct
     public void init() {
-        logger.info("对Spring上下文中的Bean进行扫描，查找ice服务方法: {}", context);
+        logger.info("对Spring上下文中的Bean进行扫描，注册ice服务方法: {}", context);
         String[] beanNames = context.getBeanNamesForType(Object.class);
         for (final String beanName : beanNames) {
             Class<?> handlerType = context.getType(beanName);
@@ -79,17 +79,20 @@ public class IceContext implements ApplicationContextAware {
                                     throw new IceException("参数必须继承IceRequest");
                                 }
                             }
+                            String serviceMethodKey = new StringBuilder(serviceMethodValue.getMethod()).append("#").append(serviceMethodValue.getVersion()).toString();
                             //存储
-                            ServiceMethodHandler oldHandler = serviceHandlerMap.put(serviceMethodValue.getMethod()+"#"+serviceMethodValue.getVersion(), serviceMethodHandler);
+                            ServiceMethodHandler oldHandler = serviceHandlerMap.put(serviceMethodKey, serviceMethodHandler);
                             if(oldHandler != null){
                                 logger.error("定义了重复的方法名+版本");
                                 throw new IceException("定义了重复的方法名+版本数");
                             }
+                            logger.info("注册ice服务{}", serviceMethodKey);
                         },
                         method -> !method.isSynthetic() && AnnotationUtils.findAnnotation(method, ServiceMethod.class) != null
                 );
             }
         }
+        logger.info("注册ice服务完成");
     }
 
     public static Object getBean(String beanName) {

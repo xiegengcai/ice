@@ -1,13 +1,11 @@
-package com.melinkr.ice.http.handler;
+package com.melinkr.ice.server.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.google.common.base.Throwables;
-import com.melinkr.ice.Dispatcher;
-import com.melinkr.ice.IceHandler;
 import com.melinkr.ice.codec.SimpleQueryStringDecoder;
-import com.melinkr.ice.config.IceServerConfig;
 import com.melinkr.ice.request.IceHttpRequest;
+import com.melinkr.ice.server.IceHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -29,15 +27,10 @@ import java.util.Map;
 @ChannelHandler.Sharable
 public class HttpServerHandler extends IceHandler {
 
-    private final DefaultHttpDataFactory httpDataFactory;
+    private DefaultHttpDataFactory httpDataFactory;
 
-    public HttpServerHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
-        this(iceServerConfig, dispatcher, new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE));
-    }
-
-    public HttpServerHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher, DefaultHttpDataFactory httpDataFactory) {
-        super(iceServerConfig, dispatcher);
-        this.httpDataFactory = httpDataFactory;
+    public HttpServerHandler() {
+        this.httpDataFactory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
     }
 
     @Override

@@ -10,7 +10,6 @@
     <modules>
         <module>ice-api</module>
         <module>ice-core</module>
-        <module>ice-server</module>
     </modules>
     <packaging>pom</packaging>
 

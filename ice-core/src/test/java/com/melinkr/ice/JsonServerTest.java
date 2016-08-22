@@ -1,5 +1,6 @@
 package com.melinkr.ice;
 
+import com.melinkr.ice.server.IceServer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 

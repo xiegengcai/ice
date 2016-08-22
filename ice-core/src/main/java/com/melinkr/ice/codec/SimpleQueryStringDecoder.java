@@ -3,7 +3,9 @@ package com.melinkr.ice.codec;
 import io.netty.handler.codec.http.HttpConstants;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * <pre>不支持同一参数提交多个值简易QueryStringDecoder</pre>

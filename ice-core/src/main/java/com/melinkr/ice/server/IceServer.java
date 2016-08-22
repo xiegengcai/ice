@@ -1,4 +1,4 @@
-package com.melinkr.ice;
+package com.melinkr.ice.server;
 
 
 /**

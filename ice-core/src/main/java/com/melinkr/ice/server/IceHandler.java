@@ -1,7 +1,9 @@
-package com.melinkr.ice;
+package com.melinkr.ice.server;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
+import com.melinkr.ice.Dispatcher;
+import com.melinkr.ice.IceErrorCode;
 import com.melinkr.ice.config.IceServerConfig;
 import com.melinkr.ice.request.IceHttpRequest;
 import com.melinkr.ice.response.IceError;
@@ -33,13 +35,15 @@ public abstract class IceHandler extends SimpleChannelInboundHandler<FullHttpReq
     protected final static String X_FORWARDED_FOR = "X-Forwarded-For";
     protected final static String X_REAL_IP = "X-Real-IP";
     protected Map<String, String> params;
+    @Autowired
     protected IceServerConfig iceServerConfig;
+    @Autowired
     protected Dispatcher dispatcher;
 
-    public IceHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
-        this.iceServerConfig = iceServerConfig;
-        this.dispatcher = dispatcher;
-    }
+//    public IceHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
+//        this.iceServerConfig = iceServerConfig;
+//        this.dispatcher = dispatcher;
+//    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {

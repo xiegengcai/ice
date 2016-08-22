@@ -54,7 +54,6 @@ public final class IceBuilder {
      * 构建请求上下文
      *
      * @param request
-     * @param response
      */
     public static IceRequestContext buildIceRequestContext(IceContext iceContext, IceHttpRequest request) {
 
@@ -169,7 +168,7 @@ public final class IceBuilder {
      */
     public static List<String> buildNoSignFieldNames(
             Class<? extends IceRequest> requestType) {
-        final ArrayList<String> igoreSignFieldNames = new ArrayList<String>(1);
+        final ArrayList<String> igoreSignFieldNames = new ArrayList<>();
         if (requestType != null) {
             if (logger.isDebugEnabled()) {
                 logger.debug("获取" + requestType.getCanonicalName() + "不需要签名的属性");
@@ -188,8 +187,8 @@ public final class IceBuilder {
                         Temporary varTemporary = field.getAnnotation(Temporary.class);
                         return varNoSign != null|| varTemporary != null;
                     });
-            if (igoreSignFieldNames.size() > 1 && logger.isDebugEnabled()) {
-                logger.debug(requestType.getCanonicalName() + "不需要签名的属性:"+ igoreSignFieldNames.toString());
+            if (logger.isDebugEnabled() && igoreSignFieldNames.size() > 1) {
+                logger.debug("{}不需要签名的属性：{}", requestType.getCanonicalName(), igoreSignFieldNames.toString());
             }
         }
         return igoreSignFieldNames;

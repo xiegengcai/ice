@@ -18,7 +18,9 @@ public final class RequestUtil {
      */
     public static Map<String, String> getRequestParams(IceHttpRequest request) {
         Map<String, String> destParamMap = new HashMap<>(request.getParams().size());
-        BeanUtils.copyProperties(destParamMap, request.getParams());
+        for (Map.Entry<String, String> entry:request.getParams().entrySet()) {
+            destParamMap.put(entry.getKey(), entry.getValue());
+        }
         return destParamMap;
     }
 

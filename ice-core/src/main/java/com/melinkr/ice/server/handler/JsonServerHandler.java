@@ -1,10 +1,8 @@
-package com.melinkr.ice.http.handler;
+package com.melinkr.ice.server.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.melinkr.ice.Dispatcher;
-import com.melinkr.ice.IceHandler;
-import com.melinkr.ice.config.IceServerConfig;
+import com.melinkr.ice.server.IceHandler;
 import com.melinkr.ice.request.IceHttpRequest;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,9 +19,9 @@ import java.util.Map;
  */
 @ChannelHandler.Sharable
 public class JsonServerHandler extends IceHandler {
-    public JsonServerHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
+   /* public JsonServerHandler(IceServerConfig iceServerConfig, Dispatcher dispatcher) {
         super(iceServerConfig, dispatcher);
-    }
+    }*/
 
     @Override
     protected IceHttpRequest builRequest(ChannelHandlerContext ctx, FullHttpRequest request) {

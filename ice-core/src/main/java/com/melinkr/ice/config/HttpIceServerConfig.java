@@ -1,14 +1,11 @@
-package com.melinkr.ice.http.config;
+package com.melinkr.ice.config;
 
-import com.melinkr.ice.config.IceServerConfig;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import javax.annotation.PostConstruct;
 import java.net.InetSocketAddress;
 import java.util.Set;
 
@@ -36,12 +33,12 @@ public class HttpIceServerConfig implements IceServerConfig {
     private NioEventLoopGroup workerGroup;
     private InetSocketAddress socketAddress;
 
-    @PostConstruct
-    public void init(){
-        this.bossGroup = new NioEventLoopGroup(bossThreadSize);
-        this.workerGroup = new NioEventLoopGroup(wokerThreadSize);
-        this.socketAddress = new InetSocketAddress(this.port);
-    }
+//    @PostConstruct
+//    public void init(){
+//        this.bossGroup = new NioEventLoopGroup(bossThreadSize);
+//        this.workerGroup = new NioEventLoopGroup(wokerThreadSize);
+//        this.socketAddress = new InetSocketAddress(this.port);
+//    }
 
     @Override
     public int port() {
@@ -60,20 +57,23 @@ public class HttpIceServerConfig implements IceServerConfig {
 
 
     @Override
-//    @Bean(name = "bossGroup", destroyMethod = "shutdownGracefully")
+    @Bean(name = "bossGroup", destroyMethod = "shutdownGracefully")
     public NioEventLoopGroup bossGroup() {
-        return this.bossGroup;
+        return new NioEventLoopGroup(bossThreadSize);
+//        return this.bossGroup;
     }
 
     @Override
-//    @Bean(name = "workerGroup", destroyMethod = "shutdownGracefully")
+    @Bean(name = "workerGroup", destroyMethod = "shutdownGracefully")
     public NioEventLoopGroup workerGroup() {
-        return this.workerGroup;
+        return new NioEventLoopGroup(wokerThreadSize);
+//        return this.workerGroup;
     }
 
     @Override
-//    @Bean(name = "socketAddress")
+    @Bean(name = "socketAddress")
     public InetSocketAddress socketAddress() {
-        return this.socketAddress;
+//        return this.socketAddress;
+        return new InetSocketAddress(this.port);
     }
 }

@@ -1,24 +1,27 @@
-package com.melinkr.ice.http.handler;
+package com.melinkr.ice.server.handler;
 
-import com.melinkr.ice.IceHandler;
-import com.melinkr.ice.IceInitializer;
+import com.melinkr.ice.server.IceHandler;
+import com.melinkr.ice.server.IceInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/19.
  */
 //@Component("serverInitializer")
 public class HttpServerInitializer extends IceInitializer {
-
+/*
     public HttpServerInitializer(IceHandler iceHandler) {
         super(iceHandler);
     }
-
+    */
+    @Autowired
+    private IceHandler iceHandler;
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         socketChannel.pipeline()

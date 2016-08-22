@@ -8,13 +8,15 @@
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
     </context:component-scan>
-    <bean id="iceServer" class="com.melinkr.ice.http.HttpIceServer">
+
+    <bean id="serverHandler" class="com.melinkr.ice.server.handler.HttpServerHandler"/>
+    <bean id="httpServer" class="com.melinkr.ice.server.HttpIceServer">
+        <constructor-arg ref="bossGroup" />
+        <constructor-arg ref="workerGroup" />
+        <constructor-arg ref="socketAddress" />
         <constructor-arg>
-            <bean class="com.melinkr.ice.http.handler.HttpServerInitializer">
-                <constructor-arg>
-                    <bean class="com.melinkr.ice.http.handler.JsonServerHandler"/>
-                </constructor-arg>
-            </bean>
+            <bean class="com.melinkr.ice.server.handler.HttpServerInitializer"/>
         </constructor-arg>
+
     </bean>
 </beans>
