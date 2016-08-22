@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.util.CharsetUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,8 +26,8 @@ public class JsonServerHandler extends IceHandler {
 
     @Override
     protected IceHttpRequest builRequest(ChannelHandlerContext ctx, FullHttpRequest request) {
-        params.putAll(JSON.parseObject(request.content().toString(CharsetUtil.UTF_8).trim()
-                , new TypeReference<Map<String, String>>(){}));
+        params = JSON.parseObject(request.content().toString(CharsetUtil.UTF_8).trim()
+                , new TypeReference<Map<String, String>>(){});
         return new IceHttpRequest(params, clientIP(ctx, request));
     }
 

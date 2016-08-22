@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 @PropertySource("conf/iceServer.properties")
-public class HttpIceServerConfig implements IceServerConfig {
+public class DefaultServerConfig implements IceServerConfig {
     @Value("${server.port:8080}")
     private int port;
     @Value("${server.maxContentLength:67108864}")

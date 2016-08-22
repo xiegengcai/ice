@@ -9,6 +9,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -23,27 +25,32 @@ public class HttpIceServer implements IceServer {
 
     private final Logger logger = LoggerFactory.getLogger(HttpIceServer.class);
 
-    private IceInitializer iceInitializer;
+    private IceServerInitializer serverInitializer;
 
-//    @Autowired
-//    @Qualifier("bossGroup")
+    @Autowired
+    @Qualifier("bossGroup")
     private NioEventLoopGroup bossGroup;
 
-//    @Autowired
-//    @Qualifier("workerGroup")
+    @Autowired
+    @Qualifier("workerGroup")
     private NioEventLoopGroup workerGroup;
 
-//    @Autowired
+    @Autowired
     private InetSocketAddress socketAddress;
 
     private Channel channel;
+/*
 
-    public HttpIceServer(NioEventLoopGroup bossGroup, NioEventLoopGroup wokerGroup, InetSocketAddress socketAddress, IceInitializer iceInitializer) {
+    public HttpIceServer(NioEventLoopGroup bossGroup, NioEventLoopGroup wokerGroup, InetSocketAddress socketAddress, IceServerInitializer serverInitializer) {
         this.bossGroup = bossGroup;
         this.workerGroup = wokerGroup;
         this.socketAddress = socketAddress;
-        this.iceInitializer = iceInitializer;
+        this.serverInitializer = serverInitializer;
     }
+*/
+public HttpIceServer(IceServerInitializer serverInitializer) {
+    this.serverInitializer = serverInitializer;
+}
 
     @Override
     @PostConstruct
@@ -54,7 +61,7 @@ public class HttpIceServer implements IceServer {
                 .channel(NioServerSocketChannel.class)
 //                .handler(new LoggingHandler(LogLevel.INFO))
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childHandler(iceInitializer);
+                .childHandler(serverInitializer);
 
         try {
             channel = b.bind(socketAddress).sync().channel().closeFuture().channel();
