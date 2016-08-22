@@ -65,14 +65,6 @@ public class IceRequestContext {
         this.iceContext = iceContext;
     }
 
-    public IceContext getIceContext() {
-        return iceContext;
-    }
-
-    public void setIceContext(IceContext iceContext) {
-        this.iceContext = iceContext;
-    }
-
     public ServiceMethodHandler getServiceMethodHandler() {
         return serviceMethodHandler;
     }

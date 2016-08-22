@@ -17,8 +17,9 @@ public class HttpServerTest {
         ApplicationContext context = new ClassPathXmlApplicationContext("conf/http-server.xml");
         IceServerConfig serverConfig = context.getBean(IceServerConfig.class);
         Dispatcher dispatcher = context.getBean(Dispatcher.class);
-        IceServer server = new HttpIceServer(new HttpServerInitializer(new HttpServerHandler(serverConfig , dispatcher
-        )));
+        IceServer server = new HttpIceServer(serverConfig.bossGroup(), serverConfig.workerGroup(), serverConfig.socketAddress()
+                , new HttpServerInitializer(new HttpServerHandler(serverConfig , dispatcher))
+        );
         server.start();
 //        IceServer server = (IceServer) IceContext.getBean("httpServer");
 //        server.stop();

@@ -14,7 +14,7 @@ import java.util.Map;
 public class AppKeyServiceImpl implements AppKeyService {
     private Map<String, String> appKeyDataMap;
     @PostConstruct
-    private void init() {
+    public void init() {
         appKeyDataMap = new HashMap<>();
         appKeyDataMap.put("1", "F661DC8AC32D448FAB31C68787497A64");
     }

@@ -144,6 +144,7 @@ public class IceDispatcher implements Dispatcher{
             //签名
             String signValue = SignUtils.sign(needSignParams, secret);
             if(!signValue.equals(requestContext.getSign())){
+                logger.info("server sign = {}, client sign = {}", signValue, requestContext.getSign());
                 //签名有误
                 return  new IceError(IceErrorCode.SIGN_ERROR);
             }

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import javax.annotation.PostConstruct;
 import java.net.InetSocketAddress;
 import java.util.Set;
 
@@ -15,7 +16,7 @@ import java.util.Set;
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/19.
  */
 @Configuration
-@ComponentScan("com.melinkr.ice")
+//@ComponentScan("com.melinkr.ice")
 @PropertySource("conf/iceServer.properties")
 public class HttpIceServerConfig implements IceServerConfig {
     @Value("${server.port:8080}")
@@ -30,6 +31,17 @@ public class HttpIceServerConfig implements IceServerConfig {
 
     @Value("${boss.thread.wokerThreadSize}")
     private int wokerThreadSize;
+
+    private NioEventLoopGroup bossGroup;
+    private NioEventLoopGroup workerGroup;
+    private InetSocketAddress socketAddress;
+
+    @PostConstruct
+    public void init(){
+        this.bossGroup = new NioEventLoopGroup(bossThreadSize);
+        this.workerGroup = new NioEventLoopGroup(wokerThreadSize);
+        this.socketAddress = new InetSocketAddress(this.port);
+    }
 
     @Override
     public int port() {
@@ -48,20 +60,20 @@ public class HttpIceServerConfig implements IceServerConfig {
 
 
     @Override
-    @Bean(name = "bossGroup", destroyMethod = "shutdownGracefully")
+//    @Bean(name = "bossGroup", destroyMethod = "shutdownGracefully")
     public NioEventLoopGroup bossGroup() {
-        return new NioEventLoopGroup(bossThreadSize);
+        return this.bossGroup;
     }
 
     @Override
-    @Bean(name = "workerGroup", destroyMethod = "shutdownGracefully")
+//    @Bean(name = "workerGroup", destroyMethod = "shutdownGracefully")
     public NioEventLoopGroup workerGroup() {
-        return new NioEventLoopGroup(wokerThreadSize);
+        return this.workerGroup;
     }
 
     @Override
-    @Bean(name = "socketAddress")
+//    @Bean(name = "socketAddress")
     public InetSocketAddress socketAddress() {
-        return new InetSocketAddress(this.port);
+        return this.socketAddress;
     }
 }

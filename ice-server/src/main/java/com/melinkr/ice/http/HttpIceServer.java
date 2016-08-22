@@ -33,24 +33,26 @@ public class HttpIceServer implements IceServer {
 
     private IceInitializer iceInitializer;
 
-    @Autowired
-    @Qualifier("bossGroup")
+//    @Autowired
+//    @Qualifier("bossGroup")
     private NioEventLoopGroup bossGroup;
 
-    @Autowired
-    @Qualifier("workerGroup")
+//    @Autowired
+//    @Qualifier("workerGroup")
     private NioEventLoopGroup workerGroup;
 
-    @Autowired
+//    @Autowired
     private InetSocketAddress socketAddress;
 
     private Channel channel;
 
-    public HttpIceServer(IceInitializer iceInitializer) {
+    public HttpIceServer(NioEventLoopGroup bossGroup, NioEventLoopGroup wokerGroup, InetSocketAddress socketAddress, IceInitializer iceInitializer) {
+        this.bossGroup = bossGroup;
+        this.workerGroup = wokerGroup;
+        this.socketAddress = socketAddress;
         this.iceInitializer = iceInitializer;
     }
 
-    @PostConstruct
     @Override
     public void start() {
         ServerBootstrap b = new ServerBootstrap();

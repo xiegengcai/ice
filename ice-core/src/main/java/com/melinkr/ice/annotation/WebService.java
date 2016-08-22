@@ -1,6 +1,9 @@
 package com.melinkr.ice.annotation;
 
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import java.lang.annotation.*;
 
 /**
  * <pre>
@@ -9,6 +12,9 @@ import org.springframework.stereotype.Component;
  * </pre>
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/20.
  */
-@Component
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Service
 public @interface WebService {
 }

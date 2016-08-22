@@ -7,6 +7,7 @@ import com.melinkr.ice.config.IceServerConfig;
 import com.melinkr.ice.response.IceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -23,6 +24,9 @@ public class InvokeServiceImpl implements InvokeService {
     public IceError invokeLimit(String appKey, String method, String version, String clientIP, String sessionId) {
         InetAddress clientInetAddress = InetAddresses.forString(clientIP);
         for (String ip : iceServerConfig.ipBlacklist()) {
+            if (!StringUtils.hasText(ip)) {
+                continue;
+            }
             if (clientIP.equals(ip)) {
                 return new IceError(IceErrorCode.FORBIDDEN);
             }
