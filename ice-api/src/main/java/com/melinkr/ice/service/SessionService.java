@@ -1,4 +1,6 @@
-package com.melinkr.ice;
+package com.melinkr.ice.service;
+
+import com.melinkr.ice.Session;
 
 /**
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/20.

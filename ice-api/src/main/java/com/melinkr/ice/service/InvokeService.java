@@ -1,4 +1,4 @@
-package com.melinkr.ice;
+package com.melinkr.ice.service;
 
 import com.melinkr.ice.response.IceError;
 import org.slf4j.Logger;

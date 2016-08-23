@@ -1,7 +1,6 @@
 package com.melinkr.ice.service;
 
 import com.melinkr.ice.Session;
-import com.melinkr.ice.SessionService;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

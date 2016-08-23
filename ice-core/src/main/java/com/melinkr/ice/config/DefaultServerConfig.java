@@ -20,9 +20,6 @@ public class DefaultServerConfig implements IceServerConfig {
     private int port;
     @Value("${server.maxContentLength:67108864}")
     private int maxContentLength;
-    @Value("#{'${server.black.ip}'.split(';')}")
-    private Set<String> ipBlacklist;
-
     @Value("${boss.thread.bossThreadSize}")
     private int bossThreadSize;
 
@@ -49,11 +46,6 @@ public class DefaultServerConfig implements IceServerConfig {
     @Override
     public int maxContentLength() {
         return this.maxContentLength;
-    }
-
-    @Override
-    public Set<String> ipBlacklist() {
-        return this.ipBlacklist;
     }
 
     @Override

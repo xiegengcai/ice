@@ -1,6 +1,5 @@
 package com.melinkr.ice.service;
 
-import com.melinkr.ice.AppKeyService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;

@@ -1,4 +1,4 @@
-package com.melinkr.ice;
+package com.melinkr.ice.service;
 
 /**
  * 密钥管理接口，需要实现类

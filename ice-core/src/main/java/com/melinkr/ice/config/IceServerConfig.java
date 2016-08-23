@@ -3,7 +3,6 @@ package com.melinkr.ice.config;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.net.InetSocketAddress;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,11 +18,6 @@ public interface IceServerConfig {
     int port();
 
     int maxContentLength();
-    /**
-     * IP黑名单列表
-     * @return
-     */
-    Set<String> ipBlacklist();
 
     NioEventLoopGroup bossGroup();
 

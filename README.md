@@ -34,15 +34,52 @@ ice.service.maxTimeout=60
 # 缺省超时时间 30s
 ice.service.defaultTimeout=30
 ```
-
-## 引入Spring配置
+## 包扫描
 ```xml
-<!-- 包扫描 -->
-<context:annotation-config />
-<context:component-scan base-package="com.melinkr.ice" use-default-filters="false">
-    <context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
-    <context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
-</context:component-scan>
+   <!-- 包扫描 -->
+   <context:annotation-config />
+   <context:component-scan base-package="com.melinkr.ice" use-default-filters="false">
+       <context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
+       <context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
+   </context:component-scan>
+```
+## 注册拦截器
+```xml
+<bean id="iterceptorChain" class="com.melinkr.ice.interceptor.IterceptorChain">
+    <constructor-arg>
+        <!-- 按先后执行顺序注册拦截器 -->
+        <list>
+            <!-- 连接器配置举例 -->
+            <bean class="com.melinkr.ice.interceptor.BaseInterceptor">
+                <property name="ignoreParams">
+                    <!-- 第一个忽略的参数 -->
+                    <value>appKey</value>
+                    <!-- 第二个-->
+                </property>
+                <property name="ignoreValues">
+                    <util:list value-type="java.util.List">
+                        <!-- 第一个忽略的参数哪些值忽略-->
+                        <list value-type="java.lang.String">
+                            <value>0</value>
+                            <value>1</value>
+                            <value>2</value>
+                            <value>3</value>
+                        </list>
+                        <!-- 第二个忽略的参数哪些值忽略-->
+                    </util:list>
+                </property>
+            </bean>
+        </list>
+    </constructor-arg>
+</bean>
+```
+或没有拦截器
+```xml
+<bean id="iterceptorChain" class="com.melinkr.ice.interceptor.IterceptorChain"/>
+```
+
+## 注册ICE服务
+```xml
 <!-- iceServer注册 -->
 <bean id="iceServer" class="com.melinkr.ice.server.HttpIceServer">
     <constructor-arg>
