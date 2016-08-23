@@ -10,6 +10,7 @@
 ## 增加配置项
 1. 默认conf/iceServer.properties，如需修改，请自身实现IceServerConfig接口或继承DefaultServerConfig
 2. 配置举例
+
 ```
 server.port=8080
 server.maxContentLength=8192
@@ -34,6 +35,7 @@ ice.service.maxTimeout=60
 # 缺省超时时间 30s
 ice.service.defaultTimeout=30
 ```
+
 ## 包扫描
 ```xml
    <!-- 包扫描 -->
