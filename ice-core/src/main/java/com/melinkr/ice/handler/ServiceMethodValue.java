@@ -1,5 +1,7 @@
 package com.melinkr.ice.handler;
 
+import com.melinkr.ice.annotation.HttpAction;
+
 /**
  * <pre>
  * 功能说明：注解方法的值
@@ -12,6 +14,11 @@ public class ServiceMethodValue {
      * API的方法
      */
     private String method;
+
+    /**
+     * HTTP请求的方法
+     */
+    private HttpAction[] httpAction;
 
     /**
      * 过期时间，单位为秒，0或负数表示不过期
@@ -112,4 +119,11 @@ public class ServiceMethodValue {
         this.openAppKey = openAppKey;
     }
 
+    public HttpAction[] getHttpAction() {
+        return httpAction;
+    }
+
+    public void setHttpAction(HttpAction[] httpAction) {
+        this.httpAction = httpAction;
+    }
 }

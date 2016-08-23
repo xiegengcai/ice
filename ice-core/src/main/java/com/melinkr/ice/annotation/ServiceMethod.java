@@ -1,5 +1,7 @@
 package com.melinkr.ice.annotation;
 
+import io.netty.handler.codec.http.HttpMethod;
+
 import java.lang.annotation.*;
 
 /**
@@ -14,10 +16,13 @@ import java.lang.annotation.*;
 public @interface ServiceMethod {
     /**
      * 服务的方法名，即由method参数指定的服务方法名
-     *
      */
     String method() default "";
 
+    /**
+     * 请求方法，默认不限制
+     */
+    HttpAction[] httpAction() default {HttpAction.POST, HttpAction.GET};
 
 
     /**
@@ -30,35 +35,34 @@ public @interface ServiceMethod {
 
     /**
      * 该方法所对应的版本号，对应version请求参数的值，版本为空，表示不进行版本限定
-     *
      */
     String version() default "";
 
     /**
      * 服务方法需要需求会话检查，默认不检查
-     *
      */
     SessionType session() default SessionType.NO;
 
     /**
      * 是否要签名，默认不需要
-     *
      */
     SignType sign() default SignType.NO;
 
     /**
      * 是否开启开发者验证，默认不开启
+     *
      * @return
      */
     AppKeyType openAppKey() default AppKeyType.NO;
 
     /**
-     *是否开启时间戳验证，默认不需要
+     * 是否开启时间戳验证，默认不需要
      */
     TimestampType openTimestamp() default TimestampType.NO;
 
     /**
      * 服务方法是否已经过期，默认不过期
      */
-    ObsoletedType obsoleted() default  ObsoletedType.NO;
+    ObsoletedType obsoleted() default ObsoletedType.NO;
 }
+

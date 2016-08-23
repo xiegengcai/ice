@@ -1,6 +1,6 @@
 package com.melinkr.ice.interceptor;
 
-import com.melinkr.ice.context.IceRequestContext;
+import com.melinkr.ice.request.IceRequest;
 import com.melinkr.ice.response.IceResponse;
 
 import java.util.List;
@@ -24,23 +24,23 @@ public class BaseInterceptor<T> implements Interceptor<T> {
     }
 
     @Override
-    public IceResponse<T> beforeService(IceRequestContext iceRequestContext) {
+    public IceResponse<T> beforeService(IceRequest iceRequest) {
         return null;
     }
 
     @Override
-    public IceResponse<T> afterService(IceRequestContext iceRequestContext) {
+    public IceResponse<T> afterService(IceRequest iceRequest, Object iceResponse) {
         return null;
     }
 
     @Override
-    public boolean isMatch(IceRequestContext iceRequestContext) {
+    public boolean isMatch(IceRequest iceRequest) {
         // 有配置忽略属性
         if (this.ignoreParams != null && this.ignoreParams.size() > 0) {
             for (int i = 0; i < ignoreParams.size(); i++) {
                 if (this.ignoreValues != null && this.ignoreValues.size() > i) {
                     // 当前属性值
-                    String paramValue = iceRequestContext.getParam(this.ignoreParams.get(i));
+                    String paramValue = iceRequest.getIceRequestContext().getParam(this.ignoreParams.get(i));
                     for(String value : ignoreValues.get(i)) {
                         // 寻找属性值，找到忽略
                         if (value.equals(paramValue)) {

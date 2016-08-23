@@ -1,10 +1,7 @@
 package com.melinkr.ice.service;
 
 import com.melinkr.ice.IceSession;
-import com.melinkr.ice.annotation.ServiceMethod;
-import com.melinkr.ice.annotation.SessionType;
-import com.melinkr.ice.annotation.SignType;
-import com.melinkr.ice.annotation.WebService;
+import com.melinkr.ice.annotation.*;
 import com.melinkr.ice.request.LoginRequest;
 import com.melinkr.ice.utils.RequestUtil;
 
@@ -21,7 +18,7 @@ public class UserService {
     @Resource
     private SessionService sessionService;
 
-    @ServiceMethod(method = "user.login", version = "1.0", session = SessionType.NO, sign = SignType.YES)
+    @ServiceMethod(method = "user.login", version = "1.0", sign = SignType.YES, httpAction = HttpAction.POST)
     public Map<String,Object> login(LoginRequest request){
         String sessionId = RequestUtil.getUuid();
         Map<String,Object> result = new HashMap<>();

@@ -57,47 +57,45 @@ public final class IceBuilder {
      */
     public static IceRequestContext buildIceRequestContext(IceContext iceContext, IceHttpRequest request) {
 
-        IceRequestContext rContext = new IceRequestContext(iceContext);
+        IceRequestContext requestCtx = new IceRequestContext();
         //毫秒
-        rContext.setServiceBeginTime(Calendar.getInstance().getTimeInMillis());
-//        rContext.setHttpServletRequest(request);
-        //3 xx2
-//        rContext.setHttpServletResponse(response);
+        requestCtx.setServiceBeginTime(Calendar.getInstance().getTimeInMillis());
 
         String method = request.getParameter(SystemParameterNames.getMehod());
         String version = request.getParameter(SystemParameterNames.getVersion());
+        requestCtx.setHttpAction(request.getHttpAction());
         //1
-        rContext.setTimestamp(request.getParameter(SystemParameterNames.getTimestamp()));
+        requestCtx.setTimestamp(request.getParameter(SystemParameterNames.getTimestamp()));
         //2  xx1
 
         //除去 sign
         Map<String, String> allParams = RequestUtil.getRequestParams(request);
         allParams.remove(SystemParameterNames.getSign());
         //4
-        rContext.setAllParams(allParams);
+        requestCtx.setAllParams(allParams);
         //5
-        rContext.setAppKey(request.getParameter(SystemParameterNames.getAppKey()));
+        requestCtx.setAppKey(request.getParameter(SystemParameterNames.getAppKey()));
 
-        //rContext.setIceResponse(iceResponse);返回结果，执行的时候设置
+        //requestCtx.setIceResponse(iceResponse);返回结果，执行的时候设置
         //9 xx4
-        rContext.setIp(request.getClientIp());
+        requestCtx.setIp(request.getClientIp());
         //10
-        rContext.setMethod(method);
+        requestCtx.setMethod(method);
         //11 xx5
-        rContext.setRequestId(RequestUtil.getUuid());
+        requestCtx.setRequestId(RequestUtil.getUuid());
 
-        // rContext.setServiceEndTime(serviceEndTime);//执行完成后设置
+        // requestCtx.setServiceEndTime(serviceEndTime);//执行完成后设置
         //12
-        rContext.setServiceMethodHandler(iceContext.getServiceMethodHandler(method, version));
-        // rContext.setSession(session);//验证session的时候设置
+        requestCtx.setServiceMethodHandler(iceContext.getServiceMethodHandler(method, version));
+        // requestCtx.setSession(session);//验证session的时候设置
         //13
-        rContext.setSessionId(request.getParameter(SystemParameterNames.getSessionId()));
+        requestCtx.setSessionId(request.getParameter(SystemParameterNames.getSessionId()));
         //14
-        rContext.setSign(request.getParameter(SystemParameterNames.getSign()));
+        requestCtx.setSign(request.getParameter(SystemParameterNames.getSign()));
         //15
-        rContext.setVersion(version);
+        requestCtx.setVersion(version);
 
-        return rContext;
+        return requestCtx;
     }
 
 
@@ -158,6 +156,7 @@ public final class IceBuilder {
         service.setTimeout(serviceMethod.timeout());
         // 版本
         service.setVersion(serviceMethod.version());
+        service.setHttpAction(serviceMethod.httpAction());
         return service;
     }
 

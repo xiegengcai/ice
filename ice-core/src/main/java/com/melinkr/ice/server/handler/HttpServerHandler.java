@@ -3,6 +3,7 @@ package com.melinkr.ice.server.handler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.google.common.base.Throwables;
+import com.melinkr.ice.annotation.HttpAction;
 import com.melinkr.ice.codec.SimpleQueryStringDecoder;
 import com.melinkr.ice.request.IceHttpRequest;
 import com.melinkr.ice.server.IceHandler;
@@ -55,6 +56,6 @@ public class HttpServerHandler extends IceHandler {
                 params.putAll(JSON.parseObject(httpContent, new TypeReference<Map<String, String>>(){}));
             }
         }
-        return new IceHttpRequest(params, clientIP(ctx, request));
+        return new IceHttpRequest(params, clientIP(ctx, request), HttpAction.fromValue(request.method().name()));
     }
 }

@@ -1,6 +1,7 @@
 package com.melinkr.ice.context;
 
 import com.melinkr.ice.Session;
+import com.melinkr.ice.annotation.HttpAction;
 import com.melinkr.ice.handler.ServiceMethodHandler;
 import com.melinkr.ice.request.IceRequest;
 import com.melinkr.ice.response.IceResponse;
@@ -15,9 +16,6 @@ import java.util.Map;
  * Created by <a href="mailto:xiegengcai@gmail.com">Xie Gengcai</a> on 2016/8/20.
  */
 public class IceRequestContext {
-
-    //系统上下文
-    private IceContext iceContext;
 
     //处理方法Handler
     private ServiceMethodHandler serviceMethodHandler;
@@ -40,9 +38,6 @@ public class IceRequestContext {
     //时间戳
     private String timestamp;
 
-    //请求后的响应
-    private IceResponse IceResponse;
-
     //请求ip
     private String ip;
 
@@ -61,10 +56,7 @@ public class IceRequestContext {
     private Map<String, String> allParams;
 
     private List<ObjectError> paramErrors;
-
-    public IceRequestContext(IceContext iceContext) {
-        this.iceContext = iceContext;
-    }
+    private HttpAction httpAction;
 
     public ServiceMethodHandler getServiceMethodHandler() {
         return serviceMethodHandler;
@@ -122,28 +114,12 @@ public class IceRequestContext {
         this.timestamp = timestamp;
     }
 
-    public com.melinkr.ice.response.IceResponse getIceResponse() {
-        return IceResponse;
-    }
-
-    public void setIceResponse(com.melinkr.ice.response.IceResponse iceResponse) {
-        IceResponse = iceResponse;
-    }
-
     public String getIp() {
         return ip;
     }
 
     public void setIp(String ip) {
         this.ip = ip;
-    }
-
-    public IceRequest getIceRequest() {
-        return iceRequest;
-    }
-
-    public void setIceRequest(IceRequest iceRequest) {
-        this.iceRequest = iceRequest;
     }
 
     public String getRequestId() {
@@ -196,5 +172,13 @@ public class IceRequestContext {
 
     public String getParam(String name){
         return this.allParams.get(name);
+    }
+
+    public HttpAction getHttpAction() {
+        return httpAction;
+    }
+
+    public void setHttpAction(HttpAction httpAction) {
+        this.httpAction = httpAction;
     }
 }

@@ -1,6 +1,7 @@
 package com.melinkr.ice.interceptor;
 
 import com.melinkr.ice.context.IceRequestContext;
+import com.melinkr.ice.request.IceRequest;
 import com.melinkr.ice.response.IceResponse;
 
 import java.util.List;
@@ -23,26 +24,25 @@ public interface Interceptor<T> {
     void setIgnoreValues(List<List<String>> values);
 
     /**
-     * 在进行服务之前调用,如果在方法中往{@link IceRequestContext 设置了{@link IceResponse}（相当于已经产生了响应了）,
+     * 在进行服务之前调用,如果在方法中往{@link IceRequest 设置了{@link IceResponse}（相当于已经产生了响应了）,
      * 所以服务将直接返回，不往下继续执行，反之服务会继续往下执行直到返回响应
      *
      * @param uipRequestContext
      */
-    IceResponse<T> beforeService(IceRequestContext iceRequestContext);
+    IceResponse<T> beforeService(IceRequest iceRequest);
 
     /**
-     * 在进行服务之后调用,如果在方法中往{@link IceRequestContext}设置了{@link com.melinkr.ice.response.IceResponse}（相当于已经产生了响应了）,
+     * 在进行服务之后调用,如果在方法中往{@link IceRequest}设置了{@link com.melinkr.ice.response.IceResponse}（相当于已经产生了响应了）,
      * 所以服务将直接返回，不往下继续执行，反之服务会继续往下执行直到返回响应
      *
-     * @param iceRequestContext
      */
-    IceResponse<T> afterService(IceRequestContext iceRequestContext);
+    IceResponse<T> afterService(IceRequest iceRequest, Object iceResponse);
 
     /**
      * 该方法返回true时才实施拦截，否则不拦截。可以通过{@link IceRequestContext}
      *
-     * @param iceRequestContext
+     * @param iceRequest
      * @return
      */
-    boolean isMatch(IceRequestContext iceRequestContext);
+    boolean isMatch(IceRequest iceRequest);
 }

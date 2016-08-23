@@ -1,4 +1,6 @@
-# HTTP REST API Service
+# ICE REST Service
+## 简介
+ICE，一个参考淘宝开发平台TOP（Taobao Open Platform）的设计思路、借鉴[Rop](https://github.com/itstamen/rop)实现的简化Rest接口服务框架。ICE采用Netty4实现实现HTTP协议，不依赖Tomcat等Servlet容器，不依赖servlet
 ## 加入依赖
 ```xml
 <dependency>

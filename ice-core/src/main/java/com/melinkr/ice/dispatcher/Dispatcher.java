@@ -1,4 +1,4 @@
-package com.melinkr.ice;
+package com.melinkr.ice.dispatcher;
 
 import com.melinkr.ice.request.IceHttpRequest;
 import com.melinkr.ice.response.IceResponse;

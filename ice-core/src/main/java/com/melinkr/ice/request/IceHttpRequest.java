@@ -1,5 +1,7 @@
 package com.melinkr.ice.request;
 
+import com.melinkr.ice.annotation.HttpAction;
+
 import java.util.Map;
 
 /**
@@ -10,12 +12,15 @@ public class IceHttpRequest {
     private Map<String, String> params;
     // 可能是IP6、IP4
     private String clientIp;
+    private HttpAction httpAction;
+
     public IceHttpRequest() {
     }
 
-    public IceHttpRequest(Map<String, String> params, String clientIp) {
+    public IceHttpRequest(Map<String, String> params, String clientIp, HttpAction httpAction) {
         this.params = params;
         this.clientIp = clientIp;
+        this.httpAction = httpAction;
     }
 
     public Map<String, String> getParams() {
@@ -38,4 +43,11 @@ public class IceHttpRequest {
         return this.params.get(name);
     }
 
+    public HttpAction getHttpAction() {
+        return httpAction;
+    }
+
+    public void setHttpAction(HttpAction httpAction) {
+        this.httpAction = httpAction;
+    }
 }

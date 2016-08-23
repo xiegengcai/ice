@@ -2,6 +2,7 @@ package com.melinkr.ice.dispatcher;
 
 import com.google.common.base.Throwables;
 import com.melinkr.ice.*;
+import com.melinkr.ice.annotation.HttpAction;
 import com.melinkr.ice.config.IceServerConfig;
 import com.melinkr.ice.config.SystemParameterNames;
 import com.melinkr.ice.context.IceContext;
@@ -59,6 +60,7 @@ public class IceDispatcher implements Dispatcher{
     private IterceptorChain iterceptorChain;
 
     private ExecutorService executorService = Executors.newFixedThreadPool(2);
+
     @Override
     public IceResponse dispatch(IceHttpRequest request) {
         final String method = request.getParameter(SystemParameterNames.getMehod());
@@ -98,12 +100,25 @@ public class IceDispatcher implements Dispatcher{
 
     private IceError validateSystemParameters(IceRequestContext requestContext) {
         //1方法名 2是否废弃 3 时间戳   4 开发者验证 5 会话验证 6签名验证 7调用次数验证 8权限验证 9拦截器  10 请求参数格式验证
-
         //2是否被废弃
         if(requestContext.getServiceMethodHandler().getServiceMethodValue().isObsoleted()){
             return new IceError(IceErrorCode.OBSOLETED_METHOD);
         }
-
+        //3post/get
+        HttpAction[] actions =  requestContext.getServiceMethodHandler().getServiceMethodValue().getHttpAction();
+        // request
+        HttpAction httpAction = requestContext.getHttpAction();
+        boolean isValidate = false;
+        for(HttpAction action : actions){
+            if(action == httpAction){
+                isValidate = true;
+                break;
+            }
+        }
+        //不通过
+        if(!isValidate){
+            return  new IceError(IceErrorCode.NOT_SUPPORTED_ACTION);
+        }
         //4验证时间戳
         //是否开启时间戳
         if (iceServerConfig.isOpenTimestamp() && requestContext.getServiceMethodHandler().getServiceMethodValue().isOpenTimestamp()) {
@@ -129,15 +144,13 @@ public class IceDispatcher implements Dispatcher{
         }
         //6 开发者验证
         if(iceServerConfig.isOpenSign()){
-            String secret = null;
             String appKey = requestContext.getAppKey();
             if(StringUtils.isEmpty(appKey)){
                 return  new IceError(IceErrorCode.INVALID_APPKEY);
-            }else{
-                secret  = appKeyService.getSecretByAppKey(requestContext.getAppKey());
-                if(StringUtils.isEmpty(secret)){
-                    return  new IceError(IceErrorCode.INVALID_APPKEY);
-                }
+            }
+            String secret  = appKeyService.getSecretByAppKey(requestContext.getAppKey());
+            if(StringUtils.isEmpty(secret)){
+                return  new IceError(IceErrorCode.INVALID_APPKEY);
             }
             //7签名验证
             if (requestContext.getServiceMethodHandler().getServiceMethodValue().isNeedSign()) {
@@ -186,8 +199,8 @@ public class IceDispatcher implements Dispatcher{
         return  error;
     }
 
-    private Object invoke(IceRequest iceRequest) throws InvocationTargetException, IllegalAccessException{
-        Object result = invokeBeforceServiceOfInterceptors(iceRequest.getIceRequestContext());
+    private Object invoke(IceRequest iceRequest) throws InvocationTargetException, IllegalAccessException {
+        Object result = invokeBeforceServiceOfInterceptors(iceRequest);
         if (result != null) {
             return result;
         }
@@ -199,11 +212,7 @@ public class IceDispatcher implements Dispatcher{
         }else{
             result = requestContext.getServiceMethodHandler().getHandlerMethod().invoke( requestContext.getServiceMethodHandler().getHandler());
         }
-        Object atfter = invokeAfterServiceOfInterceptors(iceRequest.getIceRequestContext());
-        if (atfter != null) {
-            return atfter;
-        }
-        return result;
+        return invokeAfterServiceOfInterceptors(iceRequest, result);
     }
 
     private IceResponse doInvoke(IceHttpRequest request) {
@@ -237,15 +246,15 @@ public class IceDispatcher implements Dispatcher{
     /**
      * 在服务调用之前拦截
      *
-     * @param iceRequestContext
+     * @param request
      */
-    private IceResponse<?> invokeBeforceServiceOfInterceptors(IceRequestContext iceRequestContext) {
+    private IceResponse<?> invokeBeforceServiceOfInterceptors(IceRequest request) {
         List<Interceptor> interceptors = iterceptorChain.getInterceptors();
 
         if (interceptors != null && interceptors.size() > 0) {
             for (Interceptor interceptor : interceptors) {
-                if (interceptor.isMatch(iceRequestContext)) {
-                    IceResponse error = interceptor.beforeService(iceRequestContext);
+                if (interceptor.isMatch(request)) {
+                    IceResponse error = interceptor.beforeService(request);
                     //如果有一个产生了响应，则阻止后续的调用
                     if (error != null) {
                         logger.info("拦截器[{}#beforeService]产生了一个UipResponse， 阻止本次服务请求继续，服务将直接返回。", interceptor.getClass().getName());
@@ -260,15 +269,15 @@ public class IceDispatcher implements Dispatcher{
     /**
      * 在服务调用之后拦截
      *
-     * @param iceRequestContext
+     * @param request
      */
-    private IceResponse<?> invokeAfterServiceOfInterceptors(IceRequestContext iceRequestContext) {
+    private Object invokeAfterServiceOfInterceptors(IceRequest request, Object iceResponse) {
         List<Interceptor> interceptors = iterceptorChain.getInterceptors();
 
         if (interceptors != null && interceptors.size() > 0) {
             for (Interceptor interceptor : interceptors) {
-                if (interceptor.isMatch(iceRequestContext)) {
-                    IceResponse error = interceptor.afterService(iceRequestContext);
+                if (interceptor.isMatch(request)) {
+                    IceResponse error = interceptor.afterService(request, iceResponse);
                     //如果有一个产生了响应，则阻止后续的调用
                     if (error != null) {
                         logger.info("拦截器[{}#afterService]产生了一个UipResponse，替换业务方法返回结果。", interceptor.getClass().getName());
@@ -277,6 +286,6 @@ public class IceDispatcher implements Dispatcher{
                 }
             }
         }
-        return null;
+        return iceResponse;
     }
 }
