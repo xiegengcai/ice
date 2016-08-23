@@ -8,10 +8,15 @@ import com.melinkr.ice.context.IceContext;
 import com.melinkr.ice.context.IceRequestContext;
 import com.melinkr.ice.exception.IceException;
 import com.melinkr.ice.handler.ServiceMethodHandler;
+import com.melinkr.ice.interceptor.Interceptor;
+import com.melinkr.ice.interceptor.IterceptorChain;
 import com.melinkr.ice.request.IceHttpRequest;
 import com.melinkr.ice.request.IceRequest;
 import com.melinkr.ice.response.IceError;
 import com.melinkr.ice.response.IceResponse;
+import com.melinkr.ice.service.AppKeyService;
+import com.melinkr.ice.service.InvokeService;
+import com.melinkr.ice.service.SessionService;
 import com.melinkr.ice.utils.IceBuilder;
 import com.melinkr.ice.utils.SignUtils;
 import org.slf4j.Logger;
@@ -49,6 +54,9 @@ public class IceDispatcher implements Dispatcher{
 
     @Autowired
     private IceServerConfig iceServerConfig;
+
+    @Autowired
+    private IterceptorChain iterceptorChain;
 
     private ExecutorService executorService = Executors.newFixedThreadPool(2);
     @Override
@@ -179,14 +187,23 @@ public class IceDispatcher implements Dispatcher{
     }
 
     private Object invoke(IceRequest iceRequest) throws InvocationTargetException, IllegalAccessException{
+        Object result = invokeBeforceServiceOfInterceptors(iceRequest.getIceRequestContext());
+        if (result != null) {
+            return result;
+        }
         IceRequestContext  requestContext = iceRequest.getIceRequestContext();
         //有参数
         if(iceRequest.getIceRequestContext().getServiceMethodHandler().isHasParameter()){
-            return requestContext.getServiceMethodHandler().getHandlerMethod().invoke (requestContext.getServiceMethodHandler().getHandler(), iceRequest);
+            result = requestContext.getServiceMethodHandler().getHandlerMethod().invoke (requestContext.getServiceMethodHandler().getHandler(), iceRequest);
             //无参数
         }else{
-            return requestContext.getServiceMethodHandler().getHandlerMethod().invoke( requestContext.getServiceMethodHandler().getHandler());
+            result = requestContext.getServiceMethodHandler().getHandlerMethod().invoke( requestContext.getServiceMethodHandler().getHandler());
         }
+        Object atfter = invokeAfterServiceOfInterceptors(iceRequest.getIceRequestContext());
+        if (atfter != null) {
+            return atfter;
+        }
+        return result;
     }
 
     private IceResponse doInvoke(IceHttpRequest request) {
@@ -215,5 +232,51 @@ public class IceDispatcher implements Dispatcher{
             iceError.setMessage(e.getMessage());
             return iceError;
         }
+    }
+
+    /**
+     * 在服务调用之前拦截
+     *
+     * @param iceRequestContext
+     */
+    private IceResponse<?> invokeBeforceServiceOfInterceptors(IceRequestContext iceRequestContext) {
+        List<Interceptor> interceptors = iterceptorChain.getInterceptors();
+
+        if (interceptors != null && interceptors.size() > 0) {
+            for (Interceptor interceptor : interceptors) {
+                if (interceptor.isMatch(iceRequestContext)) {
+                    IceResponse error = interceptor.beforeService(iceRequestContext);
+                    //如果有一个产生了响应，则阻止后续的调用
+                    if (error != null) {
+                        logger.info("拦截器[{}#beforeService]产生了一个UipResponse， 阻止本次服务请求继续，服务将直接返回。", interceptor.getClass().getName());
+                        return error;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 在服务调用之后拦截
+     *
+     * @param iceRequestContext
+     */
+    private IceResponse<?> invokeAfterServiceOfInterceptors(IceRequestContext iceRequestContext) {
+        List<Interceptor> interceptors = iterceptorChain.getInterceptors();
+
+        if (interceptors != null && interceptors.size() > 0) {
+            for (Interceptor interceptor : interceptors) {
+                if (interceptor.isMatch(iceRequestContext)) {
+                    IceResponse error = interceptor.afterService(iceRequestContext);
+                    //如果有一个产生了响应，则阻止后续的调用
+                    if (error != null) {
+                        logger.info("拦截器[{}#afterService]产生了一个UipResponse，替换业务方法返回结果。", interceptor.getClass().getName());
+                        return error;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

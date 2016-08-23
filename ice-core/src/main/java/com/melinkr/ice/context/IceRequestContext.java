@@ -4,6 +4,7 @@ import com.melinkr.ice.Session;
 import com.melinkr.ice.handler.ServiceMethodHandler;
 import com.melinkr.ice.request.IceRequest;
 import com.melinkr.ice.response.IceResponse;
+import org.springframework.stereotype.Service;
 import org.springframework.validation.ObjectError;
 
 import java.util.List;
@@ -191,5 +192,9 @@ public class IceRequestContext {
 
     public void setAllParams(Map<String, String> allParams) {
         this.allParams = allParams;
+    }
+
+    public String getParam(String name){
+        return this.allParams.get(name);
     }
 }
