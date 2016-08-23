@@ -16,8 +16,6 @@ ICE，一个参考淘宝开发平台TOP（Taobao Open Platform）的设计思路
 ```
 server.port=8080
 server.maxContentLength=8192
-## IP 黑名单，支持IPV4&IPV6。;分隔
-server.black.ip=
 
 ## 负责处理客户端的TCP连接请求，建议1
 boss.thread.bossThreadSize=1
