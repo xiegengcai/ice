@@ -86,7 +86,6 @@ public class IceDispatcher implements Dispatcher{
         Future<IceResponse> future = executor.submit(() -> doInvoke(request));
         IceErrorCode errorCode = IceErrorCode.UNKNOW_ERROR;
         try {
-            future.get(timeout, TimeUnit.SECONDS);
             return future.get(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             logger.info("调用服务方法:{}#{}，产生异常", method, version, e.getCause());
