@@ -1,7 +1,9 @@
 # ICE REST Service
 ## 简介
 ICE，一个参考淘宝开发平台TOP（Taobao Open Platform）的设计思路、借鉴[Rop](https://github.com/itstamen/rop)实现的简化Rest接口服务框架。ICE采用Netty4实现实现HTTP协议，不依赖Tomcat等Servlet容器，不依赖servlet
-## 加入依赖
+
+## 使用说明
+### 加入依赖
 ```xml
 <dependency>
     <groupId>com.melinkr</groupId>
@@ -9,7 +11,7 @@ ICE，一个参考淘宝开发平台TOP（Taobao Open Platform）的设计思路
     <version>${ice.version}</version>
 </dependency>
 ```
-## 增加配置项
+### 增加配置项
 1. 默认conf/iceServer.properties，如需修改，请自身实现IceServerConfig接口或继承DefaultServerConfig
 2. 配置举例
 
@@ -36,7 +38,7 @@ ice.service.maxTimeout=60
 ice.service.defaultTimeout=30
 ```
 
-## 包扫描
+### 包扫描
 ```xml
    <!-- 包扫描 -->
    <context:annotation-config />
@@ -45,7 +47,7 @@ ice.service.defaultTimeout=30
        <context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
    </context:component-scan>
 ```
-## 注册拦截器
+### 注册拦截器
 ```xml
 <bean id="iterceptorChain" class="com.melinkr.ice.interceptor.IterceptorChain">
     <constructor-arg>
@@ -80,7 +82,7 @@ ice.service.defaultTimeout=30
 <bean id="iterceptorChain" class="com.melinkr.ice.interceptor.IterceptorChain"/>
 ```
 
-## 注册ICE服务
+### 注册ICE服务
 ```xml
 <!-- iceServer注册 -->
 <bean id="iceServer" class="com.melinkr.ice.server.HttpIceServer">
