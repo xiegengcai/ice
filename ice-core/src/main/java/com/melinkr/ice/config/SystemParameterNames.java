@@ -41,13 +41,6 @@ public final class SystemParameterNames {
     }
 
     /**
-     * return  format
-     */
-    public static String getFormat(){
-        return "format";
-    }
-
-    /**
      * return  timestamp
      */
     public static String getTimestamp(){

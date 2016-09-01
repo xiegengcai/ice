@@ -1,7 +1,8 @@
 package com.melinkr.ice.dispatcher;
 
 import com.google.common.base.Throwables;
-import com.melinkr.ice.*;
+import com.melinkr.ice.IceErrorCode;
+import com.melinkr.ice.Session;
 import com.melinkr.ice.annotation.HttpAction;
 import com.melinkr.ice.config.IceServerConfig;
 import com.melinkr.ice.config.SystemParameterNames;
@@ -20,7 +21,6 @@ import com.melinkr.ice.service.InvokeService;
 import com.melinkr.ice.service.SessionService;
 import com.melinkr.ice.utils.IceBuilder;
 import com.melinkr.ice.utils.SignUtils;
-import io.netty.util.concurrent.EventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,10 +60,10 @@ public class IceDispatcher implements Dispatcher{
     @Autowired
     private IterceptorChain iterceptorChain;
 
-//    private ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @Override
-    public IceResponse dispatch(EventExecutor executor, IceHttpRequest request) {
+    public IceResponse dispatch(IceHttpRequest request) {
         final String method = request.getParameter(SystemParameterNames.getMehod());
         final String version = request
                 .getParameter(SystemParameterNames.getVersion());
@@ -83,7 +83,7 @@ public class IceDispatcher implements Dispatcher{
             timeout = iceServerConfig.maxTimeout();
         }
 //        return doInvoke(request);
-        Future<IceResponse> future = executor.submit(() -> doInvoke(request));
+        Future<IceResponse> future = executorService.submit(() -> doInvoke(request));
         IceErrorCode errorCode = IceErrorCode.UNKNOW_ERROR;
         try {
             return future.get(timeout, TimeUnit.SECONDS);

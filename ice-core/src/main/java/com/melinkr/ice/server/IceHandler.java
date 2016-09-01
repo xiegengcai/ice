@@ -50,7 +50,7 @@ public abstract class IceHandler extends SimpleChannelInboundHandler<FullHttpReq
             logger.error("Not Supported HTTP Method.");
             iceResponse = new IceError(IceErrorCode.NOT_SUPPORTED_ACTION);
         } else {
-            iceResponse = dispatcher.dispatch(ctx.executor(), builRequest(ctx, request));
+            iceResponse = dispatcher.dispatch(builRequest(ctx, request));
         }
        httpResponse(ctx, iceResponse);
     }

@@ -3,9 +3,6 @@ package com.melinkr.ice.context;
 import com.melinkr.ice.Session;
 import com.melinkr.ice.annotation.HttpAction;
 import com.melinkr.ice.handler.ServiceMethodHandler;
-import com.melinkr.ice.request.IceRequest;
-import com.melinkr.ice.response.IceResponse;
-import org.springframework.stereotype.Service;
 import org.springframework.validation.ObjectError;
 
 import java.util.List;
@@ -40,9 +37,6 @@ public class IceRequestContext {
 
     //请求ip
     private String ip;
-
-    //请求参数
-    private IceRequest iceRequest;
 
     //请求id
     private String requestId;
