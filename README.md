@@ -49,12 +49,12 @@ ice.service.defaultTimeout=30
 ```
 ### 注册拦截器
 ```xml
-<bean id="iterceptorChain" class="com.melinkr.ice.interceptor.IterceptorChain">
+<bean id="iterceptorChain" class="IterceptorChain">
     <constructor-arg>
         <!-- 按先后执行顺序注册拦截器 -->
         <list>
             <!-- 连接器配置举例 -->
-            <bean class="com.melinkr.ice.interceptor.BaseInterceptor">
+            <bean class="BaseInterceptor">
                 <property name="ignoreParams">
                     <!-- 第一个忽略的参数 -->
                     <value>appKey</value>
@@ -79,21 +79,21 @@ ice.service.defaultTimeout=30
 ```
 或没有拦截器
 ```xml
-<bean id="iterceptorChain" class="com.melinkr.ice.interceptor.IterceptorChain"/>
+<bean id="iterceptorChain" class="IterceptorChain"/>
 ```
 
 ### 注册ICE服务
 ```xml
 <!-- iceServer注册 -->
-<bean id="iceServer" class="com.melinkr.ice.server.HttpIceServer">
+<bean id="iceServer" class="HttpIceServer">
     <constructor-arg>
-        <bean class="com.melinkr.ice.server.handler.HttpServerInitializer">
+        <bean class="HttpServerInitializer">
             <constructor-arg>
                 <!-- 标准实现，支持get/post url 参数、post request attribute及post body data（p1=v1&p2=v2及json两种格式）-->
-                <bean class="com.melinkr.ice.server.handler.HttpServerHandler"/>
+                <bean class="HttpServerHandler"/>
                 <!-- 简单实现，只支持post json body data-->
                 <!--
-                <bean class="com.melinkr.ice.server.handler.JsonServerHandler"/>
+                <bean class="JsonServerHandler"/>
                 -->
             </constructor-arg>
         </bean>
